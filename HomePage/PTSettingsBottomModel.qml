@@ -2,25 +2,25 @@ import QtQuick 2.0
 ListModel {
 
     ListElement {
-        setting: "Cooling Time"
+        settingName: "Cooling Time"
         set: 0.00
         actual: 0.00
         units: "s"
     }
     ListElement {
-        setting: "Recovery Speed"
+        settingName: "Recovery Speed"
         set: 0.00
         actual: 0.00
         units: "Pa"
     }
     ListElement {
-        setting: "Back Pressure"
+        settingName: "Back Pressure"
         set: 0.00
         actual: 0.00
         units: "cm"
     }
     ListElement {
-        setting: "Recovery Position"
+        settingName: "Recovery Position"
         set: 0.00
         actual: 0.00
         units: "m/s"

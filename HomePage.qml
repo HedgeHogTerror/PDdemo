@@ -54,15 +54,16 @@ Page {
         width: parent.width * .3
         height: parent.height
         horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
+        verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
         TableViewColumn {
             role: "settingName"
             title: ""
-            width: machineSettings.width * .6
+            width: machineSettings.width * .65
         }
         TableViewColumn {
             role: "set"
             title: "Set"
-            width: machineSettings.width *.2
+            width: machineSettings.width *.15
         }
         TableViewColumn {
             role: "actual"
@@ -75,44 +76,62 @@ Page {
             height: parent.height/ parent.rowCount
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                color: Style.colorPalleteLightest
+                color: "black"
                 elide: styleData.elideMode
                 text: styleData.value
             }
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                     settingsPopup.open(styleData.value)
+                    settingsPopup.popupTitle = styleData.value;
+                    settingsPopup.open();
                 }
             }
         }
-        style: TableViewStyle {
-            rowDelegate: Item {
-                Rectangle {
-                    width: parent.width
-                    height: parent.height
-                    color: Style.colorPalleteDarkest
-                }
+        rowDelegate: Item {
+            height: 42
+            Rectangle {
+                height: parent.height
+                width: parent.width
+                color: Style.colorPalleteMedium
             }
         }
-
     }
 
     Popup {
        id: settingsPopup
        x: (parent.width - width)/2
        y: (parent.height - height)/2
+       property string popupTitle: "default"
        width: 400
        height: 100
        background: Rectangle {
            color: Style.colorPalleteLighter
          }
 
+
        Text {
            id: name
-           text: ""
-           anchors.horizontalCenter: settingsPopup.horizontalCenter
+           text: settingsPopup.popupTitle
+           anchors.centerIn: parent
+       }
 
+       Button {
+           text: "+"
+           width: 40
+           height: 40
+           anchors.verticalCenter: parent.verticalCenter
+           anchors.right: parent.right
+           anchors.rightMargin: 40
+       }
+
+       Button {
+           text: "-"
+           width: 40
+           height: 40
+           anchors.verticalCenter: parent.verticalCenter
+           anchors.left: parent.left
+           anchors.leftMargin: 40
        }
 
        modal: true
@@ -157,23 +176,29 @@ Page {
            MouseArea {
                anchors.fill: parent
                onClicked: {
-                    settingsPopup.open()
+                   settingsPopup.popupTitle = settingName;
+                   settingsPopup.open();
                }
            }
            Rectangle {
                id: settingsTitleBox
                width: parent.width
-               height: parent.height /3
+               height: parent.height / 2
                border.color: Style.colorPalleteDarker
                color: Style.colorPalleteMedium
                Text {
-                    text: setting
-                    anchors.centerIn: parent
+                    text: settingName
+                    width: 5
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.leftMargin: 5
+                    anchors.topMargin: 10
+                    wrapMode: Text.WordWrap
                }
            }
            Rectangle {
                width: parent.width
-               height: parent.height * 2/3
+               height: parent.height /2
                border.color: Style.colorPalleteDarker
                color: Style.colorPalleteMedium
                anchors.top: settingsTitleBox.bottom
@@ -198,27 +223,26 @@ Page {
                    anchors.left: parent.left
                    anchors.top: setText.bottom
                    anchors.leftMargin: 5
-                   anchors.topMargin: 10
+                   anchors.topMargin: 5
                }
                Text{
                    text: actual
                    anchors.left: actualText.right
                    anchors.top: setText.bottom
                    anchors.leftMargin: 5
-                   anchors.topMargin: 10
+                   anchors.topMargin: 5
                }
                Text{
                    text: units
                    anchors.right: parent.right
                    anchors.verticalCenter: parent.verticalCenter
-                   anchors.rightMargin: 10
+                   anchors.rightMargin: 5
                }
            }
 
        }
 
    }
-
 
     Button {
         id: saveCurrentSettings
@@ -239,32 +263,4 @@ Page {
 
     // PT live graph
     PTGraph { id: ptGraph }
-
-    Rectangle {
-        id: injectionSettingsContainer
-        anchors.top: parent.top
-        anchors.right: ptGraph.right
-        height: parent / 4
-        width: parent.width / 3
-        color: Style.colorPalleteLightest
-        border.color: Style.colorPalleteDarkest
-        border.width: 1
-
-        Rectangle {
-            id: rect
-            width: parent.width
-            height: parent.height / 3
-            border.color: Style.colorPalleteDarkest
-            border.width: 1
-            anchors.top: parent.top
-
-            Label {
-                text: "Injection"
-                anchors.top: parent.top
-                anchors.topMargin: 5
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
-
-    }
 }

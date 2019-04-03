@@ -51,6 +51,14 @@ Page {
             width: 100
         }
         model: directoryModel
+        rowDelegate: Item {
+            height: 42
+            Rectangle {
+                height: parent.height
+                width: parent.width
+                color: Style.colorPalleteDarkest
+            }
+        }
     }
 
     Button {

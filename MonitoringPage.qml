@@ -90,6 +90,14 @@ Page {
             width: 50
         }
         model: monitoringModel
+        rowDelegate: Item {
+            height: 42
+            Rectangle {
+                height: parent.height
+                width: parent.width
+                color: Style.colorPalleteDarkest
+            }
+        }
     }
 
     Button {
