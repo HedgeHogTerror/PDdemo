@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>HomePage.qml</file>
+        <file>ProcessPage.qml</file>
+        <file>SettingsPage.qml</file>
+        <file>MonitoringPage.qml</file>
+        <file>images/PD_LOGO.jpg</file>
+        <file>AlarmsPage.qml</file>
+        <file>ProcessPage/MaterialsPage.qml</file>
+        <file>PartCountPage.qml</file>
+        <file>HomePage/PTGraph.qml</file>
+        <file>Style.qml</file>
+        <file>qmldir</file>
+        <file>HomePage/MachineSettingsModel.qml</file>
+        <file>HomePage/PTSettingsTopModel.qml</file>
+        <file>HomePage/PTSettingsBottomModel.qml</file>
+    </qresource>
+</RCC>
