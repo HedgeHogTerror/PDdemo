@@ -16,5 +16,20 @@
         <file>HomePage/MachineSettingsModel.qml</file>
         <file>HomePage/PTSettingsTopModel.qml</file>
         <file>HomePage/PTSettingsBottomModel.qml</file>
+        <file>HomePage/SettingsPopup.qml</file>
+        <file>Scripts/ProcessDB.js</file>
+        <file>ProcessPage/ProcessDelegate.qml</file>
+        <file>Scripts/Calculator.js</file>
+        <file>Keyboard/AutoScroller.qml</file>
+        <file>Keyboard/FloatingButton_Active.svg</file>
+        <file>Keyboard/FloatingButton_Available.svg</file>
+        <file>Keyboard/FloatingButton_Unavailable.svg</file>
+        <file>Keyboard/HandwritingModeButton.qml</file>
+        <file>Keyboard/ScrollBar.qml</file>
+        <file>Keyboard/TextArea.qml</file>
+        <file>Keyboard/TextBase.qml</file>
+        <file>Keyboard/TextField.qml</file>
+        <file>HomePage/MachineDiagram.qml</file>
+        <file>HomePage/SaveProcessPopup.qml</file>
     </qresource>
 </RCC>

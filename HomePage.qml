@@ -4,46 +4,30 @@ import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.3
 import QtCharts 2.2
+import QtQuick.LocalStorage 2.0
+import "./Scripts/ProcessDB.js" as DB
 
 import "./HomePage"
 import "."
 
 Page {
+    id: homePage
     width: parent.width
     height: parent.height
     font.family: "Arial"
     font.pixelSize: 10
     background: Rectangle {
+        width: parent.width
+        height: parent.height
         color: Style.colorPalleteMedium
     }
 
     title: qsTr("Home")
 
-    Rectangle {
+    // Machine Diagram
+
+    MachineDiagram {
         id: machineDiagram
-        anchors.left: parent.left
-        width: parent.width * .2
-        height: parent.height
-        color: Style.colorPalleteDarker
-        Connections {
-            target: pressureData
-        }
-        Rectangle {
-            id: topClamp
-            height: 50
-            width: parent.width * .8
-            color: Style.colorPalleteLighter
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: ( parent.height - 100 ) + pressureData.wValue.y
-        }
-        Rectangle {
-            id: bottomClamp
-            height: 50
-            width: parent.width * .8
-            color: Style.colorPalleteLighter
-            anchors.bottom: parent.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
     }
 
     // Machine Settings
@@ -53,6 +37,7 @@ Page {
         anchors.left: machineDiagram.right
         width: parent.width * .3
         height: parent.height
+
         horizontalScrollBarPolicy: Qt.ScrollBarAlwaysOff
         verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
         TableViewColumn {
@@ -83,7 +68,9 @@ Page {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    settingsPopup.popupTitle = styleData.value;
+                    settingsPopup.currentValue = machineSettings.model.get(styleData.row).set;
+                    settingsPopup.popupTitle = machineSettings.model.get(styleData.row).settingName;
+                    settingsPopup.settingIndex = styleData.row;
                     settingsPopup.open();
                 }
             }
@@ -93,97 +80,73 @@ Page {
             Rectangle {
                 height: parent.height
                 width: parent.width
-                color: Style.colorPalleteMedium
+                color: (styleData.row % 2) ? Style.colorPalleteMedium : Style.colorPalleteLighter
             }
         }
     }
 
-    Popup {
-       id: settingsPopup
-       x: (parent.width - width)/2
-       y: (parent.height - height)/2
-       property string popupTitle: "default"
-       width: 400
-       height: 100
-       background: Rectangle {
-           color: Style.colorPalleteLighter
-         }
-
-
-       Text {
-           id: name
-           text: settingsPopup.popupTitle
-           anchors.centerIn: parent
-       }
-
-       Button {
-           text: "+"
-           width: 40
-           height: 40
-           anchors.verticalCenter: parent.verticalCenter
-           anchors.right: parent.right
-           anchors.rightMargin: 40
-       }
-
-       Button {
-           text: "-"
-           width: 40
-           height: 40
-           anchors.verticalCenter: parent.verticalCenter
-           anchors.left: parent.left
-           anchors.leftMargin: 40
-       }
-
-       modal: true
-       focus: true
-       closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnEscape
-   }
-
-
     // PT Top  SettingsPage
-    GridView {
-        id: ptSettingsTop
+    Rectangle {
+        color: Style.colorPalleteDarker
         anchors.right: parent.right
         anchors.top:  parent.top
         width: parent.width * .5
         height: parent.height / 4
-        delegate: settingsObject
-        cellHeight: height
-        cellWidth: width / 5
-        model: PTSettingsTopModel {}
+        GridView {
+            id: ptSettingsTop
+            anchors.fill: parent
+            delegate: settingsObject
+            cellHeight: homePage.height / 4
+            cellWidth: homePage.width * .2 * .5
+            highlightFollowsCurrentItem: true
+            highlight: Rectangle { color: Style.colorPalleteLighter; radius: 5 }
+            model: PTSettingsTopModel {}
+        }
     }
 
     // PT Bottom  SettingsPage
-    GridView {
-        id: ptSettingsBottom
+    Rectangle {
+        color: Style.colorPalleteDarker
         anchors.bottom: parent.bottom
         anchors.left: machineSettings.right
+        anchors.right: saveCurrentSettings.left
         width: parent.width * .4
         height: parent.height / 4
-        delegate: settingsObject
-        cellHeight: height
-        cellWidth: width / 4
-        model: PTSettingsBottomModel {}
+        GridView {
+            id: ptSettingsBottom
+            anchors.fill: parent
+            delegate: settingsObject
+            cellHeight: homePage.height / 4
+            cellWidth: homePage.width * .2 * .5
+            highlightFollowsCurrentItem: true
+            highlight: Rectangle { color: Style.colorPalleteLighter; radius: 5 }
+            model: PTSettingsBottomModel {}
+        }
     }
+
+    //
 
     Component {
        id: settingsObject
        Rectangle {
-           width: parent.width
-           height: parent.height
-           border.color: Style.colorPalleteDarker
-           color: Style.colorPalleteMedium
+           id: settingsContainer
+           height: ptSettingsTop.cellHeight
+           width: ptSettingsTop.cellWidth
+           color: Style.colorPalleteDarker
            MouseArea {
                anchors.fill: parent
                onClicked: {
+                   settingsPopup.currentValue = set;
                    settingsPopup.popupTitle = settingName;
+                   settingsPopup.settingIndex = index;
                    settingsPopup.open();
                }
            }
            Rectangle {
                id: settingsTitleBox
-               width: parent.width
-               height: parent.height / 2
+               height: ptSettingsTop.cellHeight / 2
+               width: ptSettingsTop.cellWidth
+               radius: 5
                border.color: Style.colorPalleteDarker
                color: Style.colorPalleteMedium
                Text {
@@ -195,10 +158,18 @@ Page {
                     anchors.topMargin: 10
                     wrapMode: Text.WordWrap
                }
+               Text{
+                   text: units
+                   anchors.right: parent.right
+                   anchors.verticalCenter: parent.verticalCenter
+                   anchors.rightMargin: 5
+               }
            }
            Rectangle {
-               width: parent.width
-               height: parent.height /2
+               id: settingsValueBox
+               height: ptSettingsTop.cellHeight / 2
+               width: ptSettingsTop.cellWidth
+               radius: 5
                border.color: Style.colorPalleteDarker
                color: Style.colorPalleteMedium
                anchors.top: settingsTitleBox.bottom
@@ -232,12 +203,6 @@ Page {
                    anchors.leftMargin: 5
                    anchors.topMargin: 5
                }
-               Text{
-                   text: units
-                   anchors.right: parent.right
-                   anchors.verticalCenter: parent.verticalCenter
-                   anchors.rightMargin: 5
-               }
            }
 
        }
@@ -248,6 +213,8 @@ Page {
         id: saveCurrentSettings
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        height: parent.height / 4
+        width: parent.width * .1
         text: ""
         Text {
             wrapMode: Text.WordWrap
@@ -257,10 +224,29 @@ Page {
             id: saveSettingsButton
             text: qsTr("Save Current Settings")
         }
-        height: parent.height / 4
-        width: parent.width * .1
+        onClicked: {
+            saveProcessPopup.open()
+        }
     }
+
 
     // PT live graph
     PTGraph { id: ptGraph }
+
+    SettingsPopup {
+        id: settingsPopup
+        popupTitle: ""
+        currentValue: 0
+    }
+
+    SaveProcessPopup {
+        id: saveProcessPopup
+    }
+
+    Component.onCompleted: {
+        DB.dbInit()
+    }
+    Component.onDestruction: {
+        //remeber stuff
+    }
 }

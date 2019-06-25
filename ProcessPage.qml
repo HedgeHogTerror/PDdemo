@@ -1,7 +1,11 @@
 import QtQuick 2.10
 import QtQuick.Controls 2.3
 import QtQuick.Controls 1.4
-
+import QtQuick.LocalStorage 2.0
+import QtQuick 2.5
+import QtQuick.Window 2.2
+import QtQuick.Layouts 1.1
+import "./Scripts/ProcessDB.js" as DB
 import "./ProcessPage"
 
 Page {
@@ -13,91 +17,99 @@ Page {
 
     title: qsTr(pageName)
 
-    //TBD:  List Items dynamically generated data...
-    ListModel {
-        id: directoryModel
-        ListElement {
-            filename: "Process 1"
-            materialname: "unobtanium"
-            moldnumber: "42"
-            lastsaveddate: "YY/MM/DD HH:MM:SS"
-        }
-    }
+    property bool creatingNewEntry: false
+    property bool editingEntry: false
 
-    TableView {
-        id: directory
-        width: parent.width
-        anchors.top: parent.top
-        anchors.bottom: moldDBButton.top
+    Rectangle {
+            anchors.fill: parent
+            ColumnLayout {
+                anchors.fill: parent
+                RowLayout {
+                    anchors.leftMargin: 10
+                    Button {
+                        id: moldDBButton
+                        text: qsTr("RESET DB")
+                        onClicked: {
+                            DB.dbDeleteAll();
+                            listView.model.clear();
+                            if (listView.count == 0) {
+                                // ListView doesn't automatically set its currentIndex to -1
+                                // when the count becomes 0.
+                                listView.currentIndex = -1;
+                            }
+                        }
+                    }
 
-        TableViewColumn {
-            role: "filename"
-            title: "File Name"
-            width: 200
-        }
-        TableViewColumn {
-            role: "materialname"
-            title: "Material Name"
-            width: 100
-        }
-        TableViewColumn {
-            role: "moldnumber"
-            title: "Mold Number"
-            width: 100
-        }
-        TableViewColumn {
-            role: "lastsaveddate"
-            title: "Last saved Date"
-            width: 100
-        }
-        model: directoryModel
-        rowDelegate: Item {
-            height: 42
-            Rectangle {
-                height: parent.height
-                width: parent.width
-                color: Style.colorPalleteDarkest
+                    Button {
+                        id: selectButton
+                        text: "Select"
+                        anchors.leftMargin: 10
+                        enabled: !creatingNewEntry && listView.currentIndex != -1
+                        onClicked: {
+                            console.log(listView.model.get(listView.currentIndex).processName);
+                        }
+                    }
+
+                    Button {
+                        id: deleteButton
+                        text: "Delete"
+                        anchors.leftMargin: 10
+                        enabled: !creatingNewEntry && listView.currentIndex != -1
+                        onClicked: {
+                            DB.dbDeleteRow(listView.model.get(listView.currentIndex).processName)
+                            listView.model.remove(listView.currentIndex, 1)
+                            if (listView.count == 0) {
+                                // ListView doesn't automatically set its currentIndex to -1
+                                // when the count becomes 0.
+                                listView.currentIndex = -1
+                            }
+                        }
+                    }
+
+                }
+                Component {
+                    id: highlightBar
+                    Rectangle {
+                        width: listView.currentItem.width
+                        height: listView.currentItem.height
+                        color: "lightgreen"
+                    }
+                }
+                ListView {
+                    id: listView
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    model: ListModel {
+                        id: listModel
+                        Component.onCompleted: DB.dbReadAll()
+                    }
+                    delegate: ProcessDelegate {}
+                    // Don't allow changing the currentIndex while the user is creating/editing values.
+                    enabled: !creatingNewEntry && !editingEntry
+
+                    highlight: highlightBar
+                    highlightFollowsCurrentItem: true
+                    focus: true
+
+                    header: Component {
+                        Text {
+                            text: "Saved processes"
+                        }
+                    }
+                }
+                Text {
+                    id: statustext
+                    color: "red"
+                    Layout.fillWidth: true
+                    font.bold: true
+                    font.pointSize: 20
+
+                }
             }
         }
+    Component.onCompleted: {
+        DB.dbInit()
     }
 
-    Button {
-        id: moldDBButton
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: 50
-        width: 180
-        height: 37
-        text: qsTr("Mold/Part Database")
-    }
 
-    Button {
-        id: materialDBBUtton
-        anchors.bottom: parent.bottom
-        anchors.left: moldDBButton.left
-        anchors.leftMargin: 50
-        width: 180
-        height: 37
-        text: qsTr("Material Database")
-    }
-
-    Button {
-        id: previewButton
-        anchors.bottom: parent.bottom
-        anchors.left: materialDBBUtton.left
-        anchors.leftMargin: 50
-        width: 180
-        height: 37
-        text: qsTr("Preview Selected Process")
-    }
-
-    Button {
-        id: loadButton
-        anchors.bottom: parent.bottom
-        anchors.left: previewButton.left
-        anchors.leftMargin: 50
-        width: 180
-        height: 37
-        text: qsTr("Load Selected Process")
-    }
 }

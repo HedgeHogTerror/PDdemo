@@ -37,8 +37,8 @@ Rectangle {
 
             ValueAxis {
                 id: axisY1
-                min: -1.1
-                max: 1.1
+                min: 0
+                max: 50
 
                 gridVisible: false
                 color: Style.colorPalleteLightest

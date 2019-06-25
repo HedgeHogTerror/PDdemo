@@ -1,6 +1,12 @@
 import QtQuick 2.10
 import QtQuick.Controls 2.3
+import QtQuick.LocalStorage 2.0
+import "./Scripts/ProcessDB.js" as DB
 import "."
+import QtQuick.VirtualKeyboard 2.2
+import QtQuick.VirtualKeyboard.Settings 2.2
+import "Keyboard"
+
 ApplicationWindow {
     id: window
     visible: true
@@ -14,8 +20,8 @@ ApplicationWindow {
         property variant currentStackView: null
 
         background: Rectangle {
-                    color: Style.colorPalleteLighter
-                }
+            color: Style.colorPalleteHeader
+        }
 
         ToolButton {
             id: drawerButton
@@ -58,7 +64,7 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
             anchors.rightMargin: 100
-            text: "Current Process Name"
+            text: "Default Process Name"
             font.italic: true
         }
     }
@@ -142,6 +148,60 @@ ApplicationWindow {
             splash.visible = false
             headerBar.visible = true
         }
+    }
+    InputPanel {
+       id: inputPanel
+       z: 10000
+       y: window.height
+       x: 0
+       visible: true
+       width: window.width
+       property var contentPoint: inputPanel.tempParent.mapFromGlobal(0, window.height - inputPanel.height - 30)
+       property var tempParent: ApplicationWindow.overlay
+
+       Component.onCompleted:
+       {
+           inputPanelHeight = inputPanel.height;
+       }
+
+       states: State {
+                name: "visible"
+                /*  The visibility of the InputPanel can be bound to the Qt.inputMethod.visible property,
+                   but then the handwriting input panel and the keyboard input panel can be visible
+                   at the same time. Here the visibility is bound to InputPanel.active property instead,
+                   which allows the handwriting panel to control the visibility when necessary.
+                */
+                when: inputPanel.active
+
+                PropertyChanges
+                {
+                    target: inputPanel
+                    parent: tempParent
+                }
+                PropertyChanges {
+                   target: inputPanel
+                   y: contentPoint.y
+                   x: contentPoint.x
+                }
+                PropertyChanges {
+                   target: inputPanel
+                   focus: true
+                }
+           }
+           transitions: Transition {
+               id: inputPanelTransition
+               from: ""
+               to: "visible"
+               reversible: true
+               enabled: !VirtualKeyboardSettings.fullScreenMode
+               ParallelAnimation {
+                   NumberAnimation {
+                       properties: "y"
+                       duration: 500
+                       easing.type: Easing.InOutQuad
+                   }
+               }
+           }
     }
 }
 

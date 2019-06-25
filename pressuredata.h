@@ -4,6 +4,9 @@
 #include <QObject>
 #include <QPointF>
 #include <QTimer>
+#ifdef __arm__
+#include <pigpio.h>
+#endif
 
 class PressureData : public QObject
 {
@@ -22,6 +25,7 @@ class PressureData : public QObject
     private:
         QTimer * m_wTimer;
         QPointF m_wValue;
+        unsigned int m_i2cHandle;
 };
 
 #endif // PRESSUREDATA_H
