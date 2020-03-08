@@ -3,15 +3,20 @@ import QtQuick.Controls 2.3
 import QtQuick.LocalStorage 2.0
 import "./Scripts/ProcessDB.js" as DB
 import "."
+import "./HomePage"
 import QtQuick.VirtualKeyboard 2.2
 import QtQuick.VirtualKeyboard.Settings 2.2
 import "Keyboard"
+import QtQuick.Controls.Material 2.1
 
 ApplicationWindow {
     id: window
     visible: true
-    width: 800
-    height: 480
+    width: 1600
+    height: 1200
+
+    Material.theme: Material.Light
+    Material.accent: Style.colorPalleteHeader
 
     header: ToolBar {
         id: headerBar
@@ -22,7 +27,7 @@ ApplicationWindow {
         background: Rectangle {
             color: Style.colorPalleteHeader
         }
-
+        Material.foreground: Style.colorPalleteHeaderFont
         ToolButton {
             id: drawerButton
             text: "\u2630"
@@ -47,7 +52,7 @@ ApplicationWindow {
             text: "\u2302"
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: {
-                    stackView.clear()
+                stackView.clear();
             }
         }
 
@@ -56,6 +61,7 @@ ApplicationWindow {
                 if( stackView.currentItem !== null) return stackView.currentItem.title;
                 else return "Home";
             }
+            font.bold: true
             anchors.centerIn: parent
         }
 
@@ -69,19 +75,24 @@ ApplicationWindow {
         }
     }
 
-    HomePage {}
+    HomePage { id: homePage }
+
+    MachineSettingsModel{ id: currentMachineSettings }
+    PTSettingsTopModel{ id: currentPTSettingsTop }
+    PTSettingsBottomModel{ id: currentPTSettingsBottom }
 
     Drawer {
         id: drawer
         width: window.width * 0.2
         height: window.height
+
         background: Rectangle {
             color: Style.colorPalleteDarkest
         }
 
         Column {
             anchors.fill: parent
-
+            Material.foreground:  Style.colorPalleteLightest
             ItemDelegate {
                 text: qsTr("Monitoring")
                 width: parent.width
@@ -156,7 +167,7 @@ ApplicationWindow {
        x: 0
        visible: true
        width: window.width
-       property var contentPoint: inputPanel.tempParent.mapFromGlobal(0, window.height - inputPanel.height - 30)
+       property var contentPoint: inputPanel.tempParent.mapFromGlobal(0, window.height)
        property var tempParent: ApplicationWindow.overlay
 
        Component.onCompleted:
@@ -180,12 +191,11 @@ ApplicationWindow {
                 }
                 PropertyChanges {
                    target: inputPanel
-                   y: contentPoint.y
+                   y: contentPoint.y 
                    x: contentPoint.x
                 }
                 PropertyChanges {
                    target: inputPanel
-                   focus: true
                 }
            }
            transitions: Transition {

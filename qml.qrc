@@ -31,5 +31,6 @@
         <file>Keyboard/TextField.qml</file>
         <file>HomePage/MachineDiagram.qml</file>
         <file>HomePage/SaveProcessPopup.qml</file>
+        <file>HomePage/SaveNewProcessPage.qml</file>
     </qresource>
 </RCC>

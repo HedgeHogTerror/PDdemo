@@ -135,7 +135,7 @@ Popup {
        columns: 3
        spacing: 5
        anchors.left: parent.left
-       anchors.leftMargin: 75
+       anchors.leftMargin: 40
        anchors.bottom: parent.bottom
        anchors.bottomMargin: 5
        Repeater {
@@ -163,11 +163,37 @@ Popup {
       Button { width: 40; height: 40; text: "="; onClicked: CalcEngine.op(text) } // squared
    }
 
+   Button {
+       id: setButton
+       width: 75
+       height: 85
+       text: "SET"
+       anchors.top: operatorButtons.top
+       anchors.left: operatorButtons.right
+       anchors.leftMargin: 5
+       onClicked: {
+            set(currentValueDisplay.text)
+       }
+   } // big set
+
+   Button {
+       id: calcButton
+       width: 75
+       height: 85
+       text: "ENTER"
+       anchors.bottom: operatorButtons.bottom
+       anchors.left: operatorButtons.right
+       anchors.leftMargin: 5
+       onClicked: {
+            CalcEngine.op("=")
+       }
+   } // big enter
+
 
 
    function set( newValue ){
        currentValue = newValue;
        setValue.text = newValue;
-       machineSettings.model.get(settingIndex).set = parseFloat(newValue);
+       currentMachineSettings.get(settingIndex).set = parseFloat(newValue);
    }
 }

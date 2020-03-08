@@ -1,4 +1,4 @@
-QT += quick charts
+QT += quick charts serialbus
 CONFIG += c++11
 
 # The following define makes your compiler emit warnings if you use
@@ -16,6 +16,7 @@ unix:!android: !darwin: LIBS += -lrt -lpthread -lpigpio
 
 
 SOURCES += main.cpp \
+    clickplcclient.cpp \
     pressuredata.cpp
 
 RESOURCES += qml.qrc
@@ -32,7 +33,9 @@ else: unix:!android: target.path = /home/pi/$${TARGET}
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    pressuredata.h
+    clickplcclient.h \
+    pressuredata.h \
+    sensorInfo.h
 
 DISTFILES += \
     qmldir

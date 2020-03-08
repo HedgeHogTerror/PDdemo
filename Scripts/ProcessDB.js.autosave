@@ -86,7 +86,7 @@ function dbInit(name,version,description)
 
 }
 
-function dbGetHandle()
+function dbGetHandle(name)
 {
     try {
         var db = LocalStorage.openDatabaseSync("process_db", "",
@@ -145,7 +145,7 @@ function dbInsert(createdDate,
                        processName,
                        materialName,
                        moldName,
-                       meteringTemp1,
+                          meteringTemp1,
                        meteringTemp2,
                        barrelTemp1,
                        barrelTemp2,

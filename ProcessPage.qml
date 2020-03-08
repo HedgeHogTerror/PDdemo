@@ -5,8 +5,14 @@ import QtQuick.LocalStorage 2.0
 import QtQuick 2.5
 import QtQuick.Window 2.2
 import QtQuick.Layouts 1.1
+
 import "./Scripts/ProcessDB.js" as DB
+
 import "./ProcessPage"
+
+import "."
+import QtQuick.Controls.Material 2.1
+
 
 Page {
     id: page
@@ -29,6 +35,7 @@ Page {
                     Button {
                         id: moldDBButton
                         text: qsTr("RESET DB")
+                        Material.background: Style.colorPalleteLightest
                         onClicked: {
                             DB.dbDeleteAll();
                             listView.model.clear();
@@ -42,17 +49,32 @@ Page {
 
                     Button {
                         id: selectButton
-                        text: "Select"
+                        text: "Set As Current Process"
+                        Material.background: Style.colorPalleteDarkest
                         anchors.leftMargin: 10
                         enabled: !creatingNewEntry && listView.currentIndex != -1
-                        onClicked: {
+                        onClicked: { //tbd
                             console.log(listView.model.get(listView.currentIndex).processName);
+
+                        }
+                    }
+
+                    Button {
+                        id: editButton
+                        text: "Edit"
+                        Material.background: Style.colorPalleteDarkest
+                        anchors.leftMargin: 10
+                        enabled: !creatingNewEntry && listView.currentIndex != -1
+                        onClicked: { //tbd
+                            console.log(listView.model.get(listView.currentIndex).processName);
+
                         }
                     }
 
                     Button {
                         id: deleteButton
                         text: "Delete"
+                        Material.background: Style.colorPalleteDarkest
                         anchors.leftMargin: 10
                         enabled: !creatingNewEntry && listView.currentIndex != -1
                         onClicked: {
@@ -91,9 +113,38 @@ Page {
                     highlightFollowsCurrentItem: true
                     focus: true
 
-                    header: Component {
+                    header: Rectangle {
+                        height: 25
+                        width: parent.width
                         Text {
-                            text: "Saved processes"
+                            text: "Date"
+                            id: dateHeaderLabel
+                            anchors.leftMargin: 10
+                            anchors.left: parent.left
+                        }
+                        Text {
+                            text: "Name"
+                            id: nameHeaderLabel
+                            anchors.leftMargin: window.width / 6
+                            anchors.left: dateHeaderLabel.right
+                        }
+                        Text {
+                            text: "Material"
+                            id: materialHeaderLabel
+                            anchors.leftMargin: window.width / 6
+                            anchors.left: nameHeaderLabel.right
+                        }
+                        Text {
+                            text: "Part"
+                            id: partHeaderLabel
+                            anchors.leftMargin: window.width / 6
+                            anchors.left: materialHeaderLabel.right
+                        }
+                        Text {
+                            text: "Mold Description"
+                            id: moldHeaderLabel
+                            anchors.leftMargin: window.width / 6
+                            anchors.left: partHeaderLabel.right
                         }
                     }
                 }
@@ -107,9 +158,4 @@ Page {
                 }
             }
         }
-    Component.onCompleted: {
-        DB.dbInit()
-    }
-
-
 }

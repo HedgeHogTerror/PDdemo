@@ -7,6 +7,7 @@
 #endif
 
 #include "pressuredata.h"
+#include "clickplcclient.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,6 +33,8 @@ int main(int argc, char *argv[])
 
         }
 #endif
+    engine.rootContext()->setContextProperty("plcClient", new ClickPLCClient());
+
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
