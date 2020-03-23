@@ -2,9 +2,9 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#ifdef __arm__
-#include <pigpio.h>
-#endif
+//#ifdef __arm__
+//#include <pigpio.h>
+//#endif
 
 #include "pressuredata.h"
 #include "clickplcclient.h"
@@ -18,21 +18,21 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     // load pressure data
-#ifdef __arm__
+//#ifdef __arm__
 
-        if (gpioInitialise() < 0)
+//        if (gpioInitialise() < 0)
 
-           {
-              fprintf(stderr, "wiring initialisation failed\n");
-              return 1;
-           }
-        else
-        {
-            fprintf(stderr, "wiring initialisation passed\n");
-            engine.rootContext()->setContextProperty("pressureData", new PressureData());
+//           {
+//              fprintf(stderr, "wiring initialisation failed\n");
+//              return 1;
+//           }
+//        else
+//        {
+//            fprintf(stderr, "wiring initialisation passed\n");
+//            engine.rootContext()->setContextProperty("pressureData", new PressureData());
 
-        }
-#endif
+//        }
+//#endif
     engine.rootContext()->setContextProperty("plcClient", new ClickPLCClient());
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));

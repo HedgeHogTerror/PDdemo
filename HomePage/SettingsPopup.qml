@@ -17,6 +17,10 @@ Popup {
    focus: true
    closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnEscape
 
+   Connections {
+       target: plcClient
+    }
+
    background: Rectangle {
        radius: 5
        color: Style.colorPalleteHeader
@@ -27,6 +31,8 @@ Popup {
     onClosed: {
         setValue.text = "";
         CalcEngine.op("C");
+        // call set sensor values here popupTitle == Sensor Name
+        if (popupTitle == "Open Position") plcClient.sethydraulicOilTemperature(currentValue);
     }
 
    Text {

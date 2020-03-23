@@ -6,7 +6,7 @@
 class SensorInfo
 {
 public:
-    SensorInfo(QString n, QModbusDataUnit::RegisterType rT, quint16 s, quint16 nR) {
+    SensorInfo(QString n, QModbusDataUnit::RegisterType rT, quint16 s = 0, quint16 nR = 0) {
         m_name = n;
         m_registerType = rT;
         m_startModBusAddress = s;
@@ -25,7 +25,7 @@ public:
         return m_numRegisters;
     }
 
-    ~SensorInfo(){};
+    ~SensorInfo(){}
 
 private:
     QString m_name;

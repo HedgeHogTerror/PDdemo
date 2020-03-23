@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QPointF>
 #include <QTimer>
-#ifdef __arm__
-#include <pigpio.h>
-#endif
+//#ifdef __arm__
+//#include <pigpio.h>
+//#endif
 
 class PressureData : public QObject
 {

@@ -33,6 +33,34 @@ Page {
     }
 
     // Machine Settings
+    Connections {
+        target: plcClient
+        onMeteringTemperatureChanged: {
+            currentMachineSettings.get(0).actual = plcClient.meteringTemperature.toFixed(2);
+        }
+        onNozzleTemperatureChanged: {
+            currentMachineSettings.get(1).actual = plcClient.nozzleTemperature.toFixed(2);
+        }
+        onInjectionTemperatureChanged: {
+            currentMachineSettings.get(2).actual = plcClient.injectionTemperature.toFixed(2);
+        }
+        onHydraulicOilTemperatureChanged: {
+            currentMachineSettings.get(3).actual = plcClient.hydraulicOilTemperature;
+        }
+        onClampPositionChanged: {
+            console.log(plcClient.clampPosition);
+            currentMachineSettings.get(4).actual = plcClient.clampPosition;
+        }
+        onPlungerPositionChanged: {
+            currentMachineSettings.get(5).actual = plcClient.plungerPosition;
+        }
+        onClampPressureChanged: {
+            currentMachineSettings.get(6).actual = plcClient.clampPressure;
+        }
+        onInjectionPressureChanged: {
+            currentMachineSettings.get(7).actual = plcClient.injectionPressure;
+        }
+    }
 
     TableView {
         id: machineSettings

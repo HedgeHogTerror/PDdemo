@@ -2,49 +2,49 @@ import QtQuick 2.0
 ListModel {
 
     ListElement {
-        settingName: "Metering Temperature 1"
+        settingName: "Metering Temperature"
         set: 0.00
         actual: 0.00
         units: "C"
     }
     ListElement {
-        settingName: "Metering Temperature 2"
+        settingName: "Nozzle Temperature"
         set: 0.00
         actual: 0.00
         units: "C"
     }
     ListElement {
-        settingName: "Barrel Temperature 1"
+        settingName: "Injection Temperature"
         set: 0.00
         actual: 0.00
         units: "C"
     }
     ListElement {
-        settingName: "Barrel Temperature 2"
+        settingName: "Hydraulic Oil Temperature" // was Barrel Temperature 2
         set: 0.00
         actual: 0.00
         units: "C"
     }
     ListElement {
-        settingName: "Open Position"
-        set: 0.00
-        actual: 0.00
+        settingName: "Clamp Position" // was Open Position
+        set: ""
+        actual: ""
         units: "cm"
     }
     ListElement {
-        settingName: "Clamp Tonnage"
+        settingName: "Plunger Position" // was Clamp Tonnage
         set: 0.00
         actual: 0.00
         units: "Pa"
     }
     ListElement {
-        settingName: "Close Speed"
+        settingName: "Clamp Pressure" // was Close Speed
         set: 0.00
         actual: 0.00
         units: "m/s"
     }
     ListElement {
-        settingName: "Open Speed"
+        settingName: "Plunger Pressure" // was Open Speed
         set: 0.00
         actual: 0.00
         units: "m/s"

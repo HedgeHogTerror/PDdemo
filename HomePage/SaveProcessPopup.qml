@@ -49,6 +49,7 @@ Popup {
             var t = new Date();
             var date = t.toLocaleString('en-US', { timeZone: 'PST' });
             console.log(machineSettings.model.get(0).set)
+
             //WIP
             DB.dbUpdate(date,
                         date,

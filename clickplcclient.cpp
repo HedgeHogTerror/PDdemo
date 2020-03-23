@@ -1,5 +1,7 @@
 #include "clickplcclient.h"
 #include<QDebug>
+#include <math.h>
+#include <string.h>
 
 const auto holding_register = static_cast<QModbusDataUnit::RegisterType> (4);
 const auto input_register = static_cast<QModbusDataUnit::RegisterType> (3);
@@ -39,8 +41,6 @@ static float toFloat(const QString &data, bool bigEndian)
 ClickPLCClient::ClickPLCClient(QObject *parent):QObject(parent),m_modbusDevice(nullptr),m_writeValue(1000)
 {
     init(); //uncomment to init
-
-
 }
 
 void ClickPLCClient::init(){
@@ -52,9 +52,9 @@ void ClickPLCClient::init(){
     connect(m_connectionTimer, SIGNAL(timeout()), this, SLOT( connectLoop() ));
 
     // temp read test
-    m_readTimer = new QTimer(this);
-    m_readTimer->setInterval(100);
-    connect(m_readTimer, SIGNAL(timeout()), this, SLOT(read_loop()));
+//    m_readTimer = new QTimer(this);
+//    m_readTimer->setInterval(50);
+//    connect(m_readTimer, SIGNAL(timeout()), this, SLOT(read_loop()));
 
     // temp write test
     m_writeTimer = new QTimer(this);
@@ -72,16 +72,29 @@ void ClickPLCClient::init(){
         if (m_modbusDevice->state() != QModbusDevice::ConnectedState) {
             m_modbusDevice->setConnectionParameter(QModbusDevice::NetworkPortParameter, 502);
             m_modbusDevice->setConnectionParameter(QModbusDevice::NetworkAddressParameter, "169.254.1.10");
-            m_modbusDevice->setTimeout(50);
+            m_modbusDevice->setTimeout(250);
             m_modbusDevice->setNumberOfRetries(10);
 
             m_connectionTimer->start();
         }
     }
-    auto clampPosition = new SensorInfo( "Clamp Position", holding_register, 28682, 2);
+    auto clampPosition = std::make_shared<SensorInfo>( "Clamp Position", holding_register, 28682, 2);
     m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(CLAMP_POSITION,clampPosition) );
-    auto plungerPosition = new SensorInfo( "Plunger Position", holding_register, 28680, 2);
+    auto plungerPosition = std::make_shared<SensorInfo>( "Plunger Position", holding_register, 28680, 2);
     m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(PLUNGER_POSITION,plungerPosition) );
+    auto clampPressure =std::make_shared<SensorInfo>( "Clamp Pressure", holding_register, 28674, 2);
+    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(CLAMP_PRESSURE,clampPressure) );
+    auto injectionPressure = std::make_shared<SensorInfo>( "Injection Pressure", holding_register, 28672, 2);
+    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(INJECTION_PRESSURE,injectionPressure) );
+    auto hydraulicOilTemperature = std::make_shared<SensorInfo>( "Hydraulic Oil Temperature", holding_register, 28688, 2);
+    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(HYDRAULILC_OIL_TEMPERATURE,hydraulicOilTemperature) );
+//    auto meteringTemperature = std::make_shared<SensorInfo>(( "Metering Temperature", holding_register, 0, 2);
+//    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(HYDRAULILC_OIL_TEMPERATURE,hydraulicOilTemperature) );
+//    auto nozzleTemperature = std::make_shared<SensorInfo>(( "Nozzle Temperature", holding_register, 1, 2);
+//    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(HYDRAULILC_OIL_TEMPERATURE,hydraulicOilTemperature) );
+//    auto injectionTemperature = std::make_shared<SensorInfo>(( "Injection Temperature", holding_register, 2, 2);
+//    m_sensorParameters.insert( std::pair<Sensor, std::shared_ptr<SensorInfo>>(HYDRAULILC_OIL_TEMPERATURE,hydraulicOilTemperature) );
+
 }
 
 void ClickPLCClient::connectLoop(){
@@ -91,15 +104,20 @@ void ClickPLCClient::connectLoop(){
         m_connectionTimer->stop();
         qDebug() << "CONNECTED!" << endl;
         // 1 sec delay
-        QTimer::singleShot(1000,this,SLOT( start_reading() ));
+        for ( auto const& x : m_sensorParameters)
+        {
+            QTimer::singleShot(1000,this, [this,x]{
+                start_reading(x.first);
+            });
+        }
         //QTimer::singleShot(2500,this,SLOT( startWriting() ));
     }
 }
 
-void ClickPLCClient::start_reading(){
-    m_readTimer->start();
-    qCritical() << "reading started" << endl;
-}
+//void ClickPLCClient::start_reading(){
+//    m_readTimer->start();
+//    qCritical() << "reading started" << endl;
+//}
 
 QModbusDataUnit ClickPLCClient::createReadRequest(QModbusDataUnit::RegisterType type, quint16 address, quint16 values) const
 {
@@ -111,25 +129,22 @@ QModbusDataUnit ClickPLCClient::createReadRequest(QModbusDataUnit::RegisterType 
  * Starts read loop, sends read requests for each sensor in the catelogue
  *
  */
-void ClickPLCClient::read_loop(){
-    if (!m_modbusDevice) return;
-
+void ClickPLCClient::start_reading(Sensor sensor ){
+    if (!m_modbusDevice) { qCritical() << "no device" << endl; return; }
+    else qCritical() << "reading started" << endl;
     // read through all sensors once
-    for ( auto const& x : m_sensorParameters)
-    {
-        auto *reply = m_modbusDevice->sendReadRequest(createReadRequest(x.second->getRegisterType(),
-                            x.second->getStartModBusAddress(), x.second->getNumRegisters()), 2);
+    auto x = m_sensorParameters[sensor];
+    auto *reply = m_modbusDevice->sendReadRequest(createReadRequest(x->getRegisterType(),
+                        x->getStartModBusAddress(), x->getNumRegisters()), 2);
+    if (reply) {
+//                qInfo() << "reply received for:" <<  x.second->getName() << endl;
 
-            if (reply) {
-                qInfo() << "reply received for:" <<  x.second->getName() << endl;
-
-                connect(reply, &QModbusReply::finished, this, &ClickPLCClient::readReady);
-                //connect(reply, &QModbusReply::finished, this, &MainWindow::readReady);
-                // TBD connect reply to Settings UI
-            } else {
-                qCritical() << "read error: " << m_modbusDevice->errorString() << endl;
-                //statusBar()->showMessage(tr("Read error: ") + modbusDevice->errorString(), 5000 b);
-            }
+        connect(reply, &QModbusReply::finished, this, &ClickPLCClient::readReady);
+        //connect(reply, &QModbusReply::finished, this, &MainWindow::readReady);
+        // TBD connect reply to Settings UI
+    } else {
+        qCritical() << "read error: " << m_modbusDevice->errorString() << endl;
+        //statusBar()->showMessage(tr("Read error: ") + modbusDevice->errorString(), 5000 b);
     }
 }
 
@@ -139,30 +154,95 @@ void ClickPLCClient::readReady(){
         return;
 
     const QModbusDataUnit unit = reply->result();
-    
-    if (reply->error() == QModbusDevice::NoError) {
-        bool ok;
-        QString one = QString::number( unit.value(0), unit.registerType() <= QModbusDataUnit::Coils ? 10 : 16 );
-        QString two = QString::number( unit.value(1), unit.registerType() <= QModbusDataUnit::Coils ? 10 : 16 );
-        QString combined = two.append(one);
-        float reading = toFloat(combined, true);
+    bool ok;
+    QString one;
+    QString two;
 
+    switch ( reply->error() ) {
+        case QModbusDevice::ProtocolError :
+            qCritical() << "protocol error" << reply->errorString() << endl;
+            break;
+        case QModbusDevice::ReadError:
+            qCritical() << "read error" << reply->errorString() << endl;
+            break;
+        case QModbusDevice::ConnectionError:
+            qCritical() << "connection error" << reply->errorString() << endl;
+            break;
+        case QModbusDevice::TimeoutError:
+            qCritical() << "timeout error" << reply->errorString() << endl;
+            break;
+        case QModbusDevice::ReplyAbortedError:
+            qCritical() << "aborted error" << reply->errorString() << endl;
+        break;
+        case QModbusDevice::UnknownError:
+            qCritical() << "unknown error" << reply->errorString() << endl;
+            break;
+        case QModbusDevice::NoError:
+            QString one = QString::number( unit.value(0), unit.registerType() <= QModbusDataUnit::Coils ? 10 : 16 );
+            QString two = QString::number( unit.value(1), unit.registerType() <= QModbusDataUnit::Coils ? 10 : 16 );
+            one = QString(4 - one.length(), QChar('0')).append(one); // prefill leading 0's
+            QString combined = two.append(one);
+            float reading = toFloat(combined, true);
 
-        //int result = (reading.toInt(&ok, 16) - 1054935370)/1000000;
-        // 3ee1094a minimum clamp 42831369 maximum clamp
-       // QString message = ok ? QString::number(reading) : "read not ok";
-        qInfo() << "readAddress:" << unit.startAddress() << "one" << one <<
-                   "two" << two <<
-                   "combined reading" << reading <<
-                   "# values:" << unit.valueCount() << endl;
-
-    } else if (reply->error() == QModbusDevice::ProtocolError) {
-        qCritical() << "protocol error" << reply->errorString() << endl;
-    } else qCritical() << "unknown error"  << endl;
+            // cutoff to 2 digits
+            QString cutoff = QString::number(reading, 'f', 2);
+            //reading = toFloat(cutoff, true);
+            // read address to find sensor type
+            switch ( unit.startAddress() ) {
+                case 28682 :
+                    m_clampPosition = reading;
+                    emit clampPositionChanged();
+                    QTimer::singleShot(100,this, [this,unit]{
+                        read_loop(unit.registerType(), unit.startAddress(), unit.valueCount(), 2 );
+                    });
+                    break;
+                case 28680 :
+                    m_plungerPosition = reading;
+                    emit plungerPositionChanged();
+                    QTimer::singleShot(100,this, [this,unit]{
+                        read_loop(unit.registerType(), unit.startAddress(), unit.valueCount(), 2 );
+                    });                    break;
+                case 28672 :
+                    m_injectionPressure = reading;
+                    emit injectionPressureChanged();
+                    QTimer::singleShot(100,this, [this,unit]{
+                        read_loop(unit.registerType(), unit.startAddress(), unit.valueCount(), 2 );
+                    });                    break;
+                case 28674 :
+                    m_clampPressure = reading;
+                    emit clampPressureChanged();
+                    QTimer::singleShot(100,this, [this,unit]{
+                        read_loop(unit.registerType(), unit.startAddress(), unit.valueCount(), 2 );
+                    });                     break;
+                case 28688 :
+                    m_hydraulicOilTemperature = reading;
+                    emit hydraulicOilTemperatureChanged();
+                    QTimer::singleShot(100,this, [this,unit]{
+                        read_loop(unit.registerType(), unit.startAddress(), unit.valueCount(), 2 );
+                    });                     break;
+            }
+//            qInfo() << "readAddress:" << unit.startAddress() << "one" << one <<
+//                       "two" << two <<
+//                       "combined reading" << reading <<
+//                       "# values:" << unit.valueCount() << endl;
+            break;
+    }
 
     reply->deleteLater();
 }
 
+void ClickPLCClient::read_loop(QModbusDataUnit::RegisterType type, quint16 address, quint16 values, int serverAddress ) {
+
+
+    auto *reply = m_modbusDevice->sendReadRequest(createReadRequest(type,
+                        address, values), serverAddress);
+
+    if (reply) {
+        connect(reply, &QModbusReply::finished, this, &ClickPLCClient::readReady);
+    } else {
+        qCritical() << "read error: " << m_modbusDevice->errorString() << endl;
+    }
+}
 
 
 void ClickPLCClient::startWriting(){
@@ -176,23 +256,9 @@ QModbusDataUnit ClickPLCClient::createWriteRequest() const
     return QModbusDataUnit(holding_register, 2, 1);
 }
 
-void ClickPLCClient::writeLoop(){
+void ClickPLCClient::writeLoop( QModbusDataUnit writeUnit ){
     if (!m_modbusDevice)
         return;
-
-    QModbusDataUnit writeUnit = createWriteRequest();
-
-    //QModbusDataUnit::RegisterType register = writeUnit.registerType();
-    for (uint i = 0; i < writeUnit.valueCount(); i++) {
-        /*if (register == QModbusDataUnit::Coils)
-            writeUnit.setValue(i, writeModel->m_coils[i + writeUnit.startAddress()]);
-        else*/
-        writeUnit.setValue(i, m_writeValue );
-        m_writeValue += 1;
-        //if (m_writeValue < 100) m_writeValue += 1;
-        //else m_writeValue = 0;
-    }
-
     if (auto *reply = m_modbusDevice->sendWriteRequest(writeUnit, 2)) {
         if (!reply->isFinished()) {
             connect(reply, &QModbusReply::finished, this, [this, reply]() {
@@ -202,7 +268,6 @@ void ClickPLCClient::writeLoop(){
                     qCritical() << "Write response error:" << reply->errorString() << endl;
                 } else {
                     qInfo() << "wroteAddress" << endl;
-
                 }
                 reply->deleteLater();
             });
@@ -212,12 +277,21 @@ void ClickPLCClient::writeLoop(){
     }
 }
 
-bool ClickPLCClient::write_value( Sensor setting, float value ) {
-    if (!m_modbusDevice) return false;
-
-    return true;
+void ClickPLCClient::setMeteringTemperature( quint16 temperature) {
+    QModbusDataUnit writeUnit = QModbusDataUnit(holding_register, 2, 2);
+    writeUnit.setValue(0, temperature);
 }
 
+void ClickPLCClient::setNozzleTemperature( quint16 temperature) {
+    QModbusDataUnit writeUnit = QModbusDataUnit(holding_register, 0, 2);
+    writeUnit.setValue(0, temperature);
+}
+
+
+void ClickPLCClient::setInjectionTemperature( quint16 temperature) {
+    QModbusDataUnit writeUnit = QModbusDataUnit(holding_register, 1, 2);
+    writeUnit.setValue(0, temperature);
+}
 
 
 ClickPLCClient::~ClickPLCClient()
